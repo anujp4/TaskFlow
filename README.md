@@ -5,7 +5,7 @@ TaskFlow is a cloud-based task management platform built with .NET Core 9, featu
 ## Getting Started
 
 ### Prerequisites
-- .NET 8.0 SDK
+- .NET 9.0 SDK
 - SQL Server (LocalDB or Express)
 - Visual Studio 2022 or VS Code
 Update connection string in TaskFlow.API/appsettings.json
