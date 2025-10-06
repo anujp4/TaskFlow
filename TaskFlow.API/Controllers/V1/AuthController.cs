@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using TaskFlow.Application.DTOs.Auth;
 using TaskFlow.Application.Interfaces;
 
-namespace TaskFlow.API.Controllers
+namespace TaskFlow.API.Controllers.V1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;

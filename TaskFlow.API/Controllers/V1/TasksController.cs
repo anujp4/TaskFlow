@@ -5,10 +5,11 @@ using TaskFlow.Application.Interfaces;
 using TaskFlow.Core.Entities;
 using TaskStatus = TaskFlow.Core.Enums.TaskStatus;
 
-namespace TaskFlow.API.Controllers
+namespace TaskFlow.API.Controllers.V1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [ApiVersion("1.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [Authorize]
     public class TasksController : ControllerBase
     {
@@ -155,6 +156,16 @@ namespace TaskFlow.API.Controllers
             if (!result.Success)
                 return NotFound(result);
 
+            return Ok(result);
+        }
+        /// <summary>
+        /// Get paginated and filtered tasks
+        /// </summary>
+        [HttpGet("paged")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTasksPaged([FromQuery] TaskFilterParams filterParams)
+        {
+            var result = await _taskService.GetTasksPagedAsync(filterParams);
             return Ok(result);
         }
     }

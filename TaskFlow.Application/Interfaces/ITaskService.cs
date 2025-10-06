@@ -12,6 +12,7 @@ namespace TaskFlow.Application.Interfaces
         Task<ResponseDto<bool>> DeleteTaskAsync(Guid taskId);
         Task<ResponseDto<TaskDto>> GetTaskByIdAsync(Guid taskId);
         Task<ResponseDto<IEnumerable<TaskDto>>> GetAllTasksAsync();
+        Task<ResponseDto<PagedResult<TaskDto>>> GetTasksPagedAsync(TaskFilterParams filterParams);
         Task<ResponseDto<IEnumerable<TaskDto>>> GetTasksByUserIdAsync(string userId);
         Task<ResponseDto<IEnumerable<TaskDto>>> GetTasksByStatusAsync(TaskStatus status);
         Task<ResponseDto<IEnumerable<TaskDto>>> GetOverdueTasksAsync();

@@ -206,5 +206,93 @@ namespace TaskFlow.Application.Services
                     new List<string> { ex.Message });
             }
         }
+        public async Task<ResponseDto<PagedResult<TaskDto>>> GetTasksPagedAsync(TaskFilterParams filterParams)
+        {
+            try
+            {
+                var tasks = await _unitOfWork.Tasks.GetAllAsync();
+                var query = tasks.AsQueryable();
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(filterParams.SearchTerm))
+                {
+                    var searchTerm = filterParams.SearchTerm.ToLower();
+                    query = query.Where(t =>
+                        t.Title.ToLower().Contains(searchTerm) ||
+                        t.Description.ToLower().Contains(searchTerm));
+                }
+
+                // Apply status filter
+                if (filterParams.Status.HasValue)
+                {
+                    query = query.Where(t => t.Status == filterParams.Status.Value);
+                }
+
+                // Apply priority filter
+                if (filterParams.Priority.HasValue)
+                {
+                    query = query.Where(t => t.Priority == filterParams.Priority.Value);
+                }
+
+                // Apply assigned user filter
+                if (!string.IsNullOrWhiteSpace(filterParams.AssignedToId))
+                {
+                    query = query.Where(t => t.AssignedToId == filterParams.AssignedToId);
+                }
+
+                // Apply overdue filter
+                if (filterParams.IsOverdue.HasValue && filterParams.IsOverdue.Value)
+                {
+                    query = query.Where(t =>
+                        t.DueDate < DateTime.UtcNow &&
+                        t.Status != TaskStatus.Completed &&
+                        t.Status != TaskStatus.Cancelled);
+                }
+
+                // Apply sorting
+                query = filterParams.SortBy.ToLower() switch
+                {
+                    "title" => filterParams.SortOrder.ToLower() == "asc"
+                        ? query.OrderBy(t => t.Title)
+                        : query.OrderByDescending(t => t.Title),
+                    "priority" => filterParams.SortOrder.ToLower() == "asc"
+                        ? query.OrderBy(t => t.Priority)
+                        : query.OrderByDescending(t => t.Priority),
+                    "status" => filterParams.SortOrder.ToLower() == "asc"
+                        ? query.OrderBy(t => t.Status)
+                        : query.OrderByDescending(t => t.Status),
+                    "duedate" => filterParams.SortOrder.ToLower() == "asc"
+                        ? query.OrderBy(t => t.DueDate)
+                        : query.OrderByDescending(t => t.DueDate),
+                    _ => filterParams.SortOrder.ToLower() == "asc"
+                        ? query.OrderBy(t => t.CreatedAt)
+                        : query.OrderByDescending(t => t.CreatedAt)
+                };
+
+                // Get total count
+                var totalCount = query.Count();
+
+                // Apply pagination
+                var items = query
+                    .Skip((filterParams.PageNumber - 1) * filterParams.PageSize)
+                    .Take(filterParams.PageSize)
+                    .ToList();
+
+                var taskDtos = _mapper.Map<List<TaskDto>>(items);
+                var pagedResult = new PagedResult<TaskDto>(
+                    taskDtos,
+                    totalCount,
+                    filterParams.PageNumber,
+                    filterParams.PageSize);
+
+                return ResponseDto<PagedResult<TaskDto>>.SuccessResponse(pagedResult);
+            }
+            catch (Exception ex)
+            {
+                return ResponseDto<PagedResult<TaskDto>>.FailureResponse(
+                    "Failed to retrieve tasks",
+                    new List<string> { ex.Message });
+            }
+        }
     }
 }
