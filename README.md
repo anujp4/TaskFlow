@@ -11,12 +11,10 @@ TaskFlow is a cloud-based task management platform built with .NET Core 9, featu
 - Update connection string in TaskFlow.API/appsettings.json
 - Run migrations
 ### Installation
-
 1. Clone the repository
-```bash
 git clone https://github.com/anujp4/TaskFlow.git
 cd TaskFlow
-## Features Implemented (Phase 1)
+### Features Implemented (Phase 1)
 
 ### Day 1
 - ✅ Clean Architecture (Core, Application, Infrastructure, API layers)
