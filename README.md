@@ -8,13 +8,13 @@ TaskFlow is a cloud-based task management platform built with .NET Core 9, featu
 - .NET 9.0 SDK
 - SQL Server (LocalDB or Express)
 - Visual Studio 2022 or VS Code
-Update connection string in TaskFlow.API/appsettings.json
-Run migrations
+- Update connection string in TaskFlow.API/appsettings.json
+- Run migrations
 ### Installation
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/TaskFlow.git
+git clone https://github.com/anujp4/TaskFlow.git
 cd TaskFlow
 ## Features Implemented (Phase 1)
 
@@ -43,7 +43,7 @@ cd TaskFlow
 - ✅ API versioning
 - ✅ Request/Response logging
 
-## Technology Stack
+### Technology Stack
 
 - **.NET 8.0** - Framework
 - **ASP.NET Core Web API** - REST API
@@ -58,7 +58,7 @@ cd TaskFlow
 - **FluentAssertions** - Test assertions
 - **Swagger/OpenAPI** - API documentation
 
-## Architecture
+### Architecture
 TaskFlow/
 ├── TaskFlow.API/              # Presentation layer
 │   ├── Controllers/
@@ -78,7 +78,7 @@ TaskFlow/
 ├── TaskFlow.Infrastructure/   # Data access layer
 │   ├── Data/
 │   └── Repositories/
-## API Endpoints
+### API Endpoints
 Authentication (v1)
 
 POST /api/v1/auth/register - Register new user
@@ -110,7 +110,7 @@ IsOverdue - Filter overdue tasks
 SortBy - Sort field (title, priority, status, duedate, createdat)
 SortOrder - Sort direction (asc, desc)
 
-## Logging
+### Logging
 Logs are written to:
 Console (Development)
 Files in Logs/ directory (Production)
@@ -123,16 +123,16 @@ Warning - Unexpected behavior
 Error - Failures
 Fatal - Application crashes
 
-##Testing
+### Testing
 Test coverage includes:
 
-## Unit tests for services
+### Unit tests for services
 Authentication tests
 Task CRUD operation tests
 Validation tests
 
 
-## Contributing
+### Contributing
 
 Fork the repository
 Create feature branch (git checkout -b feature/AmazingFeature)
@@ -141,7 +141,7 @@ Push to branch (git push origin feature/AmazingFeature)
 Open Pull Request
 └── TaskFlow.Tests/           # Test project
 └── Services/
-## Design Patterns Used
+### Design Patterns Used
 
 1. **Repository Pattern** - Data access abstraction
 2. **Unit of Work Pattern** - Transaction management
