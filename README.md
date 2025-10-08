@@ -43,7 +43,7 @@ cd TaskFlow
 
 ### Technology Stack
 
-- **.NET 8.0** - Framework
+- **.NET 9.0** - Framework
 - **ASP.NET Core Web API** - REST API
 - **Entity Framework Core** - ORM
 - **SQL Server** - Database
