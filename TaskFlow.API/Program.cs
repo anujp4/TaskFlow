@@ -1,4 +1,6 @@
+using Azure.Identity;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -29,8 +31,29 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    // Configure Key Vault (for Azure deployment)
+    if (builder.Environment.IsProduction())
+    {
+        var keyVaultName = builder.Configuration["KeyVaultName"];
+        if (!string.IsNullOrEmpty(keyVaultName))
+        {
+            var keyVaultUri = new Uri($"https://{keyVaultName}.vault.azure.net/");
+            builder.Configuration.AddAzureKeyVault(
+                keyVaultUri,
+                new DefaultAzureCredential());
+
+            Log.Information("Key Vault configured: {KeyVaultName}", keyVaultName);
+        }
+    }
+
     // Add Serilog
     builder.Host.UseSerilog();
+
+    // Add Application Insights
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+    });
 
     // Add services to the container
     builder.Services.AddControllers();
@@ -94,9 +117,18 @@ try
 
     // Configure Database
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection"),
-            b => b.MigrationsAssembly("TaskFlow.Infrastructure")));
+    {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        options.UseSqlServer(connectionString,
+            sqlOptions =>
+            {
+                sqlOptions.MigrationsAssembly("TaskFlow.Infrastructure");
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorNumbersToAdd: null);
+            });
+    });
 
     // Configure Identity
     builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -145,6 +177,8 @@ try
     builder.Services.AddScoped<IAuthService, TaskFlow.Application.Services.AuthService>();
     builder.Services.AddScoped<ITaskService, TaskFlow.Application.Services.TaskService>();
 
+    // Register FluentValidation
+    builder.Services.AddFluentValidationAutoValidation();
     builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 
     // Configure CORS
@@ -158,6 +192,9 @@ try
         });
     });
 
+    // Health checks
+    builder.Services.AddHealthChecks();
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline
@@ -167,6 +204,16 @@ try
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API V1");
+        });
+    }
+    else
+    {
+        // Enable Swagger in production too (you can remove this if you want)
+        app.UseSwagger();
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaskFlow API V1");
+            c.RoutePrefix = string.Empty; // Serve Swagger at root in production
         });
     }
 
@@ -184,6 +231,26 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
+    app.MapHealthChecks("/health");
+
+    // Run migrations automatically on startup (Azure deployment)
+    if (app.Environment.IsProduction())
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            try
+            {
+                Log.Information("Running database migrations...");
+                dbContext.Database.Migrate();
+                Log.Information("Database migrations completed successfully");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while migrating the database");
+            }
+        }
+    }
 
     app.Run();
 }
