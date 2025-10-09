@@ -122,7 +122,7 @@ Error - Failures
 Fatal - Application crashes
 
 ### Testing
-- Test coverage includes:
+- Test coverage include's:
 
 ### Unit tests for services
 - Authentication tests
